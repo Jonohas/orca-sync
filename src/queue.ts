@@ -1,16 +1,22 @@
 ﻿import { DEBOUNCE_DELAY, MAX_RETRIES, RETRY_DELAY } from "./config.ts";
 import { isJsonFile } from "./utils.ts";
-import { syncFile } from "./sync.ts";
+import { syncFile as realSyncFile } from "./sync.ts";
 import type { SyncEvent } from "./types.ts";
 
 export const syncQueue = new Map<string, SyncEvent>();
+
+// Allow tests to inject a mock for syncFile without relying on vi.mock
+let syncFileFn: typeof realSyncFile = realSyncFile;
+export function __setSyncFileForTest(fn: typeof realSyncFile) {
+  syncFileFn = fn;
+}
 
 export async function processQueue() {
   const events = Array.from(syncQueue.values());
   syncQueue.clear();
 
   for (const event of events) {
-    const success = await syncFile(event.filePath);
+    const success = await syncFileFn(event.filePath);
 
     if (!success && event.retries < MAX_RETRIES) {
       setTimeout(() => {
