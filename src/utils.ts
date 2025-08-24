@@ -1,4 +1,5 @@
 ﻿import { extname } from "path";
+import { logger } from "./logger.ts";
 
 export function isJsonFile(filePath: string): boolean {
   return extname(filePath).toLowerCase() === ".json";
@@ -12,7 +13,7 @@ export async function getFileHash(filePath: string): Promise<string> {
     hasher.update(buffer);
     return hasher.digest("hex");
   } catch (error) {
-    console.error(`Error getting hash for ${filePath}:`, error);
+    logger.error(`Error getting hash for ${filePath}:`, error);
     return "";
   }
 }

@@ -18,6 +18,7 @@ ORCA_BASE_PATH=                             # override OrcaSlicer profile base p
 ORCA_DEBOUNCE_DELAY=500                    # debounce delay in ms
 ORCA_MAX_RETRIES=3                         # max retry attempts
 ORCA_RETRY_DELAY=1000                      # base delay in ms for exponential backoff
+ORCA_LOG_LEVEL=info                        # winston log level (error,warn,info,verbose,debug,silly)
 S3_ACCESS_KEY=                             # access key (or use MINIO_ACCESS_KEY)
 S3_SECRET_KEY=                             # secret key (or use MINIO_SECRET_KEY)
 S3_BUCKET=                                 # bucket name (or use MINIO_BUCKET_NAME)

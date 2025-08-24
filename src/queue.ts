@@ -2,6 +2,7 @@
 import { isJsonFile } from "./utils.ts";
 import { syncFile as realSyncFile } from "./sync.ts";
 import type { SyncEvent } from "./types.ts";
+import { logger } from "./logger.ts";
 
 export const syncQueue = new Map<string, SyncEvent>();
 
@@ -33,7 +34,7 @@ export async function processQueue() {
 
 export function addToQueue(filePath: string) {
   if (!isJsonFile(filePath)) {
-    console.log(`Ignoring non-JSON file: ${filePath}`);
+    logger.debug ? logger.debug(`Ignoring non-JSON file: ${filePath}`) : logger.info(`Ignoring non-JSON file: ${filePath}`);
     return;
   }
 

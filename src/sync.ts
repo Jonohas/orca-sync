@@ -4,6 +4,7 @@ import { foldersToWatch, pathBase } from "./config.ts";
 import { isJsonFile } from "./utils.ts";
 import { getLocalFileInfo, getS3FileInfo } from "./fileInfo.ts";
 import { s3Client } from "./s3.ts";
+import { logger } from "./logger.ts";
 
 async function getAllLocalFiles(): Promise<string[]> {
   const allFiles: string[] = [];
@@ -18,7 +19,7 @@ async function getAllLocalFiles(): Promise<string[]> {
         }
       }
     } catch (error) {
-      console.error(`Error reading folder ${folder}:`, error);
+      logger.error(`Error reading folder ${folder}:`, error);
     }
   }
 
@@ -30,9 +31,9 @@ async function getAllS3Files(): Promise<string[]> {
   const s3Files: string[] = [];
   for (const folder of foldersToWatch) {
     try {
-      console.log(`Would list JSON files in S3 ${folder}/`);
+      logger.info(`Would list JSON files in S3 ${folder}/`);
     } catch (error) {
-      console.error(`Error listing S3 files in ${folder}:`, error);
+      logger.error(`Error listing S3 files in ${folder}:`, error);
     }
   }
   return s3Files;
@@ -40,7 +41,7 @@ async function getAllS3Files(): Promise<string[]> {
 
 export async function syncFile(relativePath: string): Promise<boolean> {
   if (!isJsonFile(relativePath)) {
-    console.log(`Skipping non-JSON file: ${relativePath}`);
+    logger.info(`Skipping non-JSON file: ${relativePath}`);
     return true;
   }
 
@@ -50,14 +51,14 @@ export async function syncFile(relativePath: string): Promise<boolean> {
 
   try {
     if (!localInfo && s3Info) {
-      console.log(`Deleting S3 file: ${relativePath}`);
+      logger.info(`Deleting S3 file: ${relativePath}`);
       const s3File = s3Client.file(relativePath);
       await s3File.delete();
       return true;
     }
 
     if (localInfo && !s3Info) {
-      console.log(`Uploading new JSON file: ${relativePath}`);
+      logger.info(`Uploading new JSON file: ${relativePath}`);
       const s3File = s3Client.file(relativePath);
       const bunFile = Bun.file(localPath);
       await s3File.write(bunFile);
@@ -68,26 +69,26 @@ export async function syncFile(relativePath: string): Promise<boolean> {
       const needsSync = localInfo.hash !== s3Info.hash || localInfo.modTime > s3Info.modTime;
 
       if (needsSync) {
-        console.log(`Updating S3 JSON file: ${relativePath}`);
+        logger.info(`Updating S3 JSON file: ${relativePath}`);
         const s3File = s3Client.file(relativePath);
         const bunFile = Bun.file(localPath);
         await s3File.write(bunFile);
         return true;
       } else {
-        console.log(`JSON file up to date: ${relativePath}`);
+        logger.info(`JSON file up to date: ${relativePath}`);
         return true;
       }
     }
 
     return true;
   } catch (error) {
-    console.error(`Error syncing JSON file ${relativePath}:`, error);
+    logger.error(`Error syncing JSON file ${relativePath}:`, error);
     return false;
   }
 }
 
 export async function initialSync() {
-  console.log("Starting initial sync (JSON files only)...");
+  logger.info("Starting initial sync (JSON files only)...");
 
   try {
     const localFiles = await getAllLocalFiles();
@@ -103,15 +104,15 @@ export async function initialSync() {
         try {
           await stat(localPath);
         } catch {
-          console.log(`Cleaning up S3 JSON file: ${file}`);
+          logger.info(`Cleaning up S3 JSON file: ${file}`);
           const s3File = s3Client.file(file);
           await s3File.delete();
         }
       }
     }
 
-    console.log("Initial sync completed (JSON files only)");
+    logger.info("Initial sync completed (JSON files only)");
   } catch (error) {
-    console.error("Error during initial sync:", error);
+    logger.error("Error during initial sync:", error);
   }
 }

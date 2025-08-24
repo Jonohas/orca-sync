@@ -2,6 +2,7 @@
 import { getFileHash } from "./utils.ts";
 import { s3Client } from "./s3.ts";
 import type { FileInfo } from "./types.ts";
+import { logger } from "./logger.ts";
 
 export async function getLocalFileInfo(filePath: string): Promise<FileInfo | null> {
   try {
@@ -14,7 +15,7 @@ export async function getLocalFileInfo(filePath: string): Promise<FileInfo | nul
       size: stats.size,
     };
   } catch (error) {
-    console.error(`Error getting local file info for ${filePath}:`, error);
+    logger.error(`Error getting local file info for ${filePath}:`, error);
     return null;
   }
 }
@@ -36,7 +37,7 @@ export async function getS3FileInfo(s3Key: string): Promise<FileInfo | null> {
       size: stats.size || 0,
     };
   } catch (error) {
-    console.error(`Error getting S3 file info for ${s3Key}:`, error);
+    logger.error(`Error getting S3 file info for ${s3Key}:`, error);
     return null;
   }
 }

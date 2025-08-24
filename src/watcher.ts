@@ -3,6 +3,7 @@ import { pathBase } from "./config.ts";
 import { addToQueue as realAddToQueue } from "./queue.ts";
 import { isJsonFile } from "./utils.ts";
 import { join } from "path";
+import { logger } from "./logger.ts";
 
 // Allow tests to inject a mock for addToQueue without relying on vi.mock
 let addToQueueFn: typeof realAddToQueue = realAddToQueue;
@@ -17,7 +18,7 @@ export function __handleEventForTest(folder: string, event: string, file?: strin
   if (!isJsonFile(filename)) {
     return;
   }
-  console.log(`JSON file ${event}: ${relativePath}`);
+  logger.info(`JSON file ${event}: ${relativePath}`);
   addToQueueFn(relativePath);
 }
 
